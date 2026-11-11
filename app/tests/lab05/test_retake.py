@@ -21,3 +21,9 @@ def test_saturday_moves_to_monday():
 
 def test_sunday_moves_to_monday():
     assert retake_date(date(2026, 11, 15), SEMESTER_END) == date(2026, 11, 23)
+
+
+def test_holiday_moves_to_next_working_day():
+    christmas = date(2026, 12, 25)  # п'ятниця; далі вихідні
+    result = retake_date(date(2026, 12, 18), SEMESTER_END, holidays={christmas})
+    assert result == date(2026, 12, 28)
