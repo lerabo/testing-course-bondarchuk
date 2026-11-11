@@ -21,3 +21,4 @@ Python 3 і pytest для модульних та інтеграційних т�
 | 5 | Модульне тестування, TDD і тестові дублери | [docs/lab05](docs/lab05/), [запуски CI на main](https://github.com/lerabo/testing-course-bondarchuk/actions/workflows/static-checks.yml?query=branch%3Amain) |
 | 6 | Мутаційне тестування, тестування на основі властивостей і Testcontainers | [docs/lab06](docs/lab06/), [запуски CI на main](https://github.com/lerabo/testing-course-bondarchuk/actions/workflows/static-checks.yml?query=branch%3Amain) |
 | 7 | Автоматизоване тестування REST API, контрактне тестування | [docs/lab07](docs/lab07/), [запуски CI на main](https://github.com/lerabo/testing-course-bondarchuk/actions/workflows/static-checks.yml?query=branch%3Amain) |
+| 8 | E2E-тестування з Playwright: Page Object, трасування, нестабільність | [docs/lab08](docs/lab08/), [запуски CI на main](https://github.com/lerabo/testing-course-bondarchuk/actions/workflows/static-checks.yml?query=branch%3Amain) |
