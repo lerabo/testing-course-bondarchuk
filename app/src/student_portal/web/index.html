@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <title>Система управління студентами</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+<header>
+  <h1>Система управління студентами</h1>
+  <p id="who" hidden><span id="role"></span> <button type="button" id="logout">Вийти</button></p>
+</header>
+<main>
+  <section id="login-view">
+    <h2>Вхід</h2>
+    <form id="login-form">
+      <label>Токен <input name="token" required autocomplete="off"></label>
+      <button type="submit">Увійти</button>
+    </form>
+  </section>
+
+  <section id="list-view" hidden>
+    <h2>Студенти групи</h2>
+    <label>Пошук за прізвищем <input id="search" type="search"></label>
+    <table>
+      <thead><tr><th>ПІБ</th><th>Email</th><th>Середній бал</th><th><span class="visually-hidden">Дії</span></th></tr></thead>
+      <tbody id="students"></tbody>
+    </table>
+    <p id="empty" hidden>Нікого не знайдено</p>
+    <p id="total"></p>
+
+    <form id="add-form" hidden>
+      <h3>Новий студент</h3>
+      <label>Прізвище <input name="last_name" required></label>
+      <label>Ім’я <input name="first_name" required></label>
+      <label>Email <input name="email" type="email" required></label>
+      <button type="submit">Додати студента</button>
+    </form>
+  </section>
+
+  <section id="card-view" hidden>
+    <h2 id="card-name"></h2>
+    <p>Середній бал: <span id="card-average"></span></p>
+    <table>
+      <thead><tr><th>Дисципліна</th><th>Бали</th><th>ECTS</th><th>Дата</th></tr></thead>
+      <tbody id="grades"></tbody>
+    </table>
+    <form id="grade-form" hidden>
+      <h3>Нова оцінка</h3>
+      <label>Дисципліна <input name="course" required></label>
+      <label>Бали <input name="score" type="number" required></label>
+      <button type="submit">Виставити</button>
+    </form>
+    <p><button type="button" id="back">До списку</button></p>
+  </section>
+
+  <p id="message" role="status"></p>
+  <p id="error" role="alert"></p>
+</main>
+</body>
+</html>
