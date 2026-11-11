@@ -2,7 +2,9 @@
 
 from datetime import date
 
-from student_portal.retake import retake_date
+import pytest
+
+from student_portal.retake import NoRetakeDateError, retake_date
 
 SEMESTER_END = date(2026, 12, 31)
 
@@ -33,3 +35,8 @@ def test_several_holidays_in_a_row_are_skipped():
     holidays = {date(2026, 12, 29), date(2026, 12, 30)}  # вівторок і середа
     result = retake_date(date(2026, 12, 22), SEMESTER_END, holidays=holidays)
     assert result == date(2026, 12, 31)
+
+
+def test_no_date_before_semester_end_raises():
+    with pytest.raises(NoRetakeDateError, match="28.12.2026"):
+        retake_date(date(2026, 12, 22), date(2026, 12, 28))
