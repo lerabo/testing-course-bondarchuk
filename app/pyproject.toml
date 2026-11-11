@@ -55,7 +55,8 @@ max-complexity = 10
 "tests/**" = ["S101"]
 # Базова лінія: mccabe додає до create_app складність вкладених обробників маршрутів
 # FastAPI (кожен обробник окремо простий); код застосунку викладача не змінюємо.
-"src/student_portal/api.py" = ["C901"]
+# S311 - хибне спрацювання: random імітує затримку мережі (PORTAL_MAX_DELAY), не криптографію.
+"src/student_portal/api.py" = ["C901", "S311"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
