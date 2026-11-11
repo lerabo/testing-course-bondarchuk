@@ -1,0 +1,12 @@
+rules:
+  - id: input-to-shell
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: Дані, введені користувачем, потрапляють у команду оболонки (CWE-78)
+    pattern-sources:
+      - pattern: input(...)
+    pattern-sinks:
+      - patterns:
+          - pattern: subprocess.run($CMD, ..., shell=True, ...)
+          - focus-metavariable: $CMD

@@ -1,0 +1,9 @@
+rules:
+  - id: shell-command-from-fstring
+    languages: [python]
+    severity: ERROR
+    message: >-
+      Команду оболонки зібрано з f-рядка і виконано з shell=True - будь-яке
+      значення всередині рядка може додати власну команду (CWE-78). Передавайте
+      аргументи списком без shell=True.
+    pattern: subprocess.$FUNC(f"...", ..., shell=True, ...)
