@@ -52,6 +52,9 @@ max-complexity = 10
 [tool.ruff.lint.per-file-ignores]
 # pytest побудований на assert: у тестах S101 - хибне спрацювання
 "tests/**" = ["S101"]
+# Базова лінія: mccabe додає до create_app складність вкладених обробників маршрутів
+# FastAPI (кожен обробник окремо простий); код застосунку викладача не змінюємо.
+"src/student_portal/api.py" = ["C901"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
