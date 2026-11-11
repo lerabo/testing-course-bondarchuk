@@ -7,6 +7,13 @@ from student_portal.exceptions import PortalError, StorageError
 from student_portal.grades import Grade
 from student_portal.group import Group
 from student_portal.people import Student
+from student_portal.report import (
+    course_report,
+    export_csv,
+    export_pdf,
+    pass_rate,
+    send_report,
+)
 from student_portal.storage import load_group, save_group
 
 DATA_FILE = Path("data/group.json")
@@ -15,7 +22,8 @@ MENU = """
 1 — список студентів        5 — додати оцінку
 2 — рейтинг                 6 — видалити студента
 3 — пошук за прізвищем      7 — розподіл оцінок ECTS
-4 — додати студента         0 — зберегти і вийти"""
+4 — додати студента         8 — відомість з дисципліни
+                            0 — зберегти і вийти"""
 
 
 def format_average(value: float | None) -> str:
@@ -59,6 +67,15 @@ def run(group: Group) -> None:  # noqa: C901
                 case "7":
                     for letter, count in group.ects_distribution().items():
                         print(f"{letter:<3}{'█' * count} {count}")
+                case "8":
+                    course = input("Дисципліна: ").strip()
+                    rows = course_report(group, course)
+                    path = export_csv(rows, f"{group.name}-{course}")
+                    print(f"Відомість: {path}, зараховано {pass_rate(rows):.0f} %")
+                    if input("Зберегти також у PDF? (т/н) ").strip() == "т":
+                        export_pdf(path)
+                    if to := input("Надіслати на email (Enter — пропустити): "):
+                        send_report(path, to)
                 case "0":
                     return
                 case _:
