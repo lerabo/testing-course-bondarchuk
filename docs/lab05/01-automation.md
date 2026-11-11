@@ -66,4 +66,4 @@ $ uv run pytest tests/lab05/test_lab03_cases.py -rxX -q
 | TB-ST-19 | `test_invalid_transition_rejected[TB-ST-19]` | passed | — |
 | TB-ST-20 | `test_invalid_transition_rejected[TB-ST-20]` | xfailed | #17 |
 
-Окремо в `test_coverage_gaps.py` позначено xfail чотири дефекти імпорту з ЛР 4 (#7, #8, #9, #12): ці тести з'явилися під час аналізу покриття (див. `04-coverage.md`).
+Окремо позначено xfail ще вісім тестів: чотири дефекти імпорту з ЛР 4 (#7, #8, #9, #12) у `test_coverage_gaps.py` — вони з'явилися під час аналізу покриття (див. `04-coverage.md`), і три дефекти розсилки Р-20 (#29, #30, #31) у `test_reminders_doubles.py` (див. `03-doubles.md`). Разом у CI — 16 `xfailed`.

@@ -39,6 +39,23 @@ Required test coverage of 85.0% reached. Total coverage: 93.31%
 | `group.py` | 38–40, 56–57, 60, 63–64 | Видалення студента, середній бал групи, перелік дисциплін, розподіл ECTS | Додано `test_remove_student`, `test_group_statistics`, `test_group_without_grades_has_no_average`. |
 | `importer.py` | 22–23, 33, 47, 50 | Відсутній файл, дублікат email, порожнє обов'язкове поле, невідоме фінансування | Додано `test_import_missing_file` і `test_import_invalid_row_rejected`. Разом із ними додано xfail-тести для дефектів імпорту з ЛР 4 (#7, #8, #9, #12). |
 | `people.py` | 36, 50, 60, 83 | `Person.__str__`, властивості `role` студента і викладача, `Student.grades_for` | Не тестую: це однорядкові методи без логіки, а клас `Teacher` у застосунку не використовується. Тест «заради відсотка» без змістовної перевірки не додає впевненості. |
-| `reminders.py` | 32–36, 39–48, 55, 84 | `SmtpMailer` (з'єднання, STARTTLS, вхід) і частина `send_debt_reminders` | Покривається тестами з дублерами для Р-20 (завдання 3, `test_reminders_doubles.py`). |
+| `reminders.py` | 55 (після тестів з дублерами; до них — 32–36, 39–48, 55, 84) | `ConsoleMailer.send` — друк листа замість надсилання | `SmtpMailer` і `send_debt_reminders` покрито тестами з дублерами (`test_reminders_doubles.py`), покриття 68 % → 98 %. `ConsoleMailer` — допоміжний однорядковий клас для роботи без сервера, тестувати його не варто. |
 
 **Колонка BrPart** показує кількість розгалужень, у яких виконався лише один із напрямків (наприклад, `if` завжди істинний). Покриття рядків на 100 % цього не помітило б. 100 % покриття для всього застосунку я не вважаю метою: тести для `people.py` вище нічого б не перевіряли, а дефекти ЛР 3 і ЛР 4 знайдено в коді, який і так був покритий. Покриття показує, що код не перевірено, але не доводить, що перевірено добре.
+
+## Підсумок після всіх тестів ЛР 5
+
+```text
+Name                              Stmts   Miss Branch BrPart  Cover   Missing
+src/student_portal/people.py         50      4      4      0    93%   36, 50, 60, 83
+src/student_portal/reminders.py      53      1     10      0    98%   55
+TOTAL                               318      5     60      0    99%
+Required test coverage of 85.0% reached. Total coverage: 98.68%
+110 passed, 16 xfailed
+```
+
+`retake.py` має 100 % покриття розгалужень і тому не показується в звіті (`skip_covered`).
+
+## Перевірка контрольної точки
+
+У тимчасовій гілці `tmp/coverage-gate-check` закоментовано обидва тести, що перевіряють `NoRetakeDateError`, і відкрито запит [#34](https://github.com/lerabo/testing-course-bondarchuk/pull/34). Завдання `tests` стало червоним: `src/student_portal/retake.py  15  1  4  1  89%  27` і `Coverage failure: total of 89 is less than fail-under=100` ([запуск CI](https://github.com/lerabo/testing-course-bondarchuk/actions/runs/43051895308)). Загальний поріг 85 % при цьому виконано, тобто окремий поріг для `retake.py` ловить те, що загальний пропустив би. Злиття запиту заблоковано правилами гілки (`tests` — обов'язкова перевірка), запит закрито без злиття.
