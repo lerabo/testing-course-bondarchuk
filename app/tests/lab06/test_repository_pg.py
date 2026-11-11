@@ -136,17 +136,13 @@ def group_repository(repository):
 @pytest.mark.parametrize(
     ("query", "expected"),
     [
-        pytest.param("Коваль", ["Коваленко", "Коваль"], id="exact-case"),
-        pytest.param("  Коваль  ", ["Коваленко", "Коваль"], id="surrounding-spaces"),
+        pytest.param("Коваль", ["Коваль"], id="exact-case"),
+        pytest.param("  Коваль  ", ["Коваль"], id="surrounding-spaces"),
         pytest.param("ова", ["Коваленко", "Коваль"], id="middle-of-name"),
         pytest.param("К", ["Коваленко", "Коваль"], id="one-letter"),
         pytest.param("Шевчук", [], id="no-match"),
-        pytest.param(
-            "коваль", ["Коваленко", "Коваль"], id="lowercase", marks=known_defect("#38")
-        ),
-        pytest.param(
-            "КОВАЛЬ", ["Коваленко", "Коваль"], id="uppercase", marks=known_defect("#38")
-        ),
+        pytest.param("коваль", ["Коваль"], id="lowercase", marks=known_defect("#38")),
+        pytest.param("КОВАЛЬ", ["Коваль"], id="uppercase", marks=known_defect("#38")),
         pytest.param("%", ["Сто%ко"], id="percent", marks=known_defect("#39")),
         pytest.param("_", ["Під_крес"], id="underscore", marks=known_defect("#39")),
     ],
