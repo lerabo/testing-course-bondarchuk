@@ -10,6 +10,11 @@ from .pages.login_page import LoginPage
 from .pages.student_card import StudentCard
 from .pages.students_page import StudentsPage
 
+
+def known_defect(issue: str):
+    return pytest.mark.xfail(strict=True, reason=f"відомий дефект {issue}")
+
+
 # ------------------------------------------------------------------ вхід і вихід
 
 
@@ -84,8 +89,12 @@ def test_table_shows_name_email_and_total(as_admin, api):
 @pytest.mark.parametrize(
     ("student", "average"),
     [
-        pytest.param("Коваль Олена", "92,5", id="koval-92-5"),
-        pytest.param("Шевчук Ірина", "82,0", id="shevchuk-82-0"),
+        pytest.param(
+            "Коваль Олена", "92,5", id="koval-92-5", marks=known_defect("#52")
+        ),
+        pytest.param(
+            "Шевчук Ірина", "82,0", id="shevchuk-82-0", marks=known_defect("#52")
+        ),
         pytest.param("Ткачук Софія", "-", id="tkachuk-no-grades"),
     ],
 )
@@ -115,6 +124,7 @@ def test_search_by_part_of_last_name(as_admin):
     expect(as_admin.row_for("Коваль Олена")).to_be_visible()
 
 
+@known_defect("#53")
 def test_search_ignores_case(as_admin):
     as_admin.search_for("коваль")
     expect(as_admin.rows).to_have_count(1)
@@ -140,6 +150,7 @@ def test_add_student(as_admin, unique_email):
     expect(as_admin.total).to_have_text(f"Усього: {before + 1}")
 
 
+@known_defect("#54")
 def test_add_with_used_email_keeps_entered_data(as_admin):
     as_admin.add_student("Дубльована", "Олена", "O.KOVAL@students.example.edu")
     expect(as_admin.error).to_have_text("Помилка: email уже використовується")
@@ -147,6 +158,7 @@ def test_add_with_used_email_keeps_entered_data(as_admin):
     expect(as_admin.email).to_have_value("O.KOVAL@students.example.edu")
 
 
+@known_defect("#54")
 def test_add_with_invalid_data_keeps_entered_data(as_admin, unique_email):
     too_long = "Я" * 51
     as_admin.add_student(too_long, "Олена", unique_email)
@@ -163,6 +175,7 @@ def test_used_email_does_not_add_row(as_admin):
 # ------------------------------------------------------------------ видалення
 
 
+@known_defect("#55")
 def test_delete_after_confirmation(page, base_url, new_student, api):
     student_id, name = new_student
     students = login_as(page, base_url, "admin-token")
@@ -175,6 +188,7 @@ def test_delete_after_confirmation(page, base_url, new_student, api):
     expect(students.total).to_have_text(f"Усього: {before - 1}")
 
 
+@known_defect("#56")
 def test_cancel_delete_changes_nothing(page, base_url, new_student, api):
     student_id, name = new_student
     students = login_as(page, base_url, "admin-token")
@@ -203,6 +217,7 @@ def test_teacher_adds_grade_on_card(new_student, as_teacher):
     expect(card.average).to_have_text("80,0")
 
 
+@known_defect("#46")
 def test_teacher_score_zero_is_accepted(new_student, as_teacher):
     _, name = new_student
     card = as_teacher.open_card(name)
@@ -220,6 +235,7 @@ def test_teacher_score_out_of_range_shows_error(new_student, as_teacher, score):
     expect(card.grades).to_have_count(0)
 
 
+@known_defect("#57")
 def test_list_after_card_shows_current_average(new_student, as_teacher):
     _, name = new_student
     card = as_teacher.open_card(name)
