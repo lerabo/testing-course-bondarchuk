@@ -190,9 +190,11 @@ def test_cancel_delete_changes_nothing(page, base_url, new_student, api):
 
 
 # --------------------------------------------------------- картка і нова оцінка
+# new_student стоїть перед as_teacher: студента створено до того, як сторінка
+# завантажила список, інакше його рядка в таблиці ще не буде.
 
 
-def test_teacher_adds_grade_on_card(as_teacher, new_student):
+def test_teacher_adds_grade_on_card(new_student, as_teacher):
     _, name = new_student
     card = as_teacher.open_card(name)
     card.add_grade("Python", 80)
@@ -201,7 +203,7 @@ def test_teacher_adds_grade_on_card(as_teacher, new_student):
     expect(card.average).to_have_text("80,0")
 
 
-def test_teacher_score_zero_is_accepted(as_teacher, new_student):
+def test_teacher_score_zero_is_accepted(new_student, as_teacher):
     _, name = new_student
     card = as_teacher.open_card(name)
     card.add_grade("Python", 0)
@@ -210,7 +212,7 @@ def test_teacher_score_zero_is_accepted(as_teacher, new_student):
 
 
 @pytest.mark.parametrize("score", [-1, 101])
-def test_teacher_score_out_of_range_shows_error(as_teacher, new_student, score):
+def test_teacher_score_out_of_range_shows_error(new_student, as_teacher, score):
     _, name = new_student
     card = as_teacher.open_card(name)
     card.add_grade("Python", score)
@@ -218,7 +220,7 @@ def test_teacher_score_out_of_range_shows_error(as_teacher, new_student, score):
     expect(card.grades).to_have_count(0)
 
 
-def test_list_after_card_shows_current_average(as_teacher, new_student):
+def test_list_after_card_shows_current_average(new_student, as_teacher):
     _, name = new_student
     card = as_teacher.open_card(name)
     card.add_grade("Python", 80)
