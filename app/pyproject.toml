@@ -41,3 +41,13 @@ max-complexity = 10
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["student_portal"]
+omit = ["*/student_portal/cli.py", "*/student_portal/dean.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 85
