@@ -40,3 +40,14 @@ def test_several_holidays_in_a_row_are_skipped():
 def test_no_date_before_semester_end_raises():
     with pytest.raises(NoRetakeDateError, match="28.12.2026"):
         retake_date(date(2026, 12, 22), date(2026, 12, 28))
+
+
+def test_last_day_of_semester_is_allowed():
+    semester_end = date(2026, 12, 29)
+    assert retake_date(date(2026, 12, 22), semester_end) == semester_end
+
+
+def test_weekend_shift_past_semester_end_raises():
+    # кандидат 26.12 (субота) ще в семестрі, але понеділок 28.12 - уже ні
+    with pytest.raises(NoRetakeDateError, match="27.12.2026"):
+        retake_date(date(2026, 12, 19), date(2026, 12, 27))
