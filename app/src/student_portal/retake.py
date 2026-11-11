@@ -1,7 +1,7 @@
 """Дата перескладання (вимога Р-21)."""
 
-from datetime import date
+from datetime import date, timedelta
 
 
 def retake_date(exam_date: date, semester_end: date, holidays=()) -> date:
-    return date(2026, 11, 16)
+    return exam_date + timedelta(days=7)
