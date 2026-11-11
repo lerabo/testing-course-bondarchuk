@@ -13,3 +13,7 @@ def test_monday_exam_gives_monday_next_week():
 
 def test_wednesday_exam_gives_wednesday_next_week():
     assert retake_date(date(2026, 11, 11), SEMESTER_END) == date(2026, 11, 18)
+
+
+def test_saturday_moves_to_monday():
+    assert retake_date(date(2026, 11, 14), SEMESTER_END) == date(2026, 11, 23)
