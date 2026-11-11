@@ -38,14 +38,14 @@ Feature: Grading and ECTS grade calculation (US-1)
       | 101   |
       | 50.5  |
 
-  Scenario: Teacher corrects a grade within 72 hours and the change is logged
-    Given the teacher entered 58 points for the student 1 hour ago
+  Scenario: Teacher corrects a grade within 14 days and the change is logged
+    Given the teacher entered 58 points for the student 3 days ago
     When the teacher changes the score to 61 points
     Then the student's dashboard shows grade "E"
     And the change log contains the teacher, the time, old value 58 and new value 61
 
-  Scenario: Teacher cannot change a grade after 72 hours
-    Given the teacher entered 58 points for the student 73 hours ago
+  Scenario: Teacher cannot change a grade after 14 days
+    Given the teacher entered 58 points for the student 15 days ago
     When the teacher tries to change the score to 61 points
-    Then the system rejects the request with a message that only an administrator can change it
+    Then the system rejects the request with a message about the correction period
     And the student's score remains 58
