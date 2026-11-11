@@ -27,7 +27,9 @@ def print_students(students: Iterable[Student]) -> None:
         print(f"{s.id:>3}  {s.full_name:<30}{format_average(s.average()):>6}")
 
 
-def run(group: Group) -> None:
+# Базова лінія: меню з match на 8 гілок успадковане з ЛР 1; розбити на
+# обробники команд під час наступного рефакторингу.
+def run(group: Group) -> None:  # noqa: C901
     while True:
         print(MENU)
         choice = input("> ").strip()
