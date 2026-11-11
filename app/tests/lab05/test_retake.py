@@ -4,7 +4,7 @@ from datetime import date
 
 import pytest  # noqa: F401 - тимчасово: тести винятку закоментовано
 
-from student_portal.retake import NoRetakeDateError, retake_date
+from student_portal.retake import retake_date
 
 SEMESTER_END = date(2026, 12, 31)
 
