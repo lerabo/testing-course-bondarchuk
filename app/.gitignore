@@ -8,3 +8,4 @@ mutants/
 .coverage
 htmlcov/
 .schemathesis/
+test-results/

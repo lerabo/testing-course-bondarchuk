@@ -1,12 +1,25 @@
 """REST API системи управління студентами (вимога Р-23)."""
 
+import asyncio
 import os
+import random
 from contextlib import suppress
 from datetime import date
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Query, Response, status
+from fastapi import (
+    Depends,
+    FastAPI,
+    Header,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+    status,
+)
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr, Field
 
 from student_portal.exceptions import PortalError, StudentNotFoundError
@@ -14,6 +27,8 @@ from student_portal.grades import Grade
 from student_portal.group import Group
 from student_portal.people import Student
 from student_portal.storage import load_group
+
+WEB = Path(__file__).parent / "web"
 
 TOKENS = {
     "admin-token": "admin",
@@ -55,8 +70,26 @@ class GradeOut(BaseModel):
     graded_on: date
 
 
+class Me(BaseModel):
+    role: str
+    student_id: int | None
+
+
 def create_app(group: Group) -> FastAPI:
-    app = FastAPI(title="Система управління студентами", version="0.7.0")
+    app = FastAPI(title="Система управління студентами", version="0.8.0")
+    app.mount("/static", StaticFiles(directory=WEB), name="static")
+
+    @app.middleware("http")
+    async def slow_network(request: Request, call_next):
+        """Випадкова затримка відповідей API до PORTAL_MAX_DELAY секунд."""
+        delay = float(os.environ.get("PORTAL_MAX_DELAY", "0"))
+        if delay and request.url.path.startswith("/api/"):
+            await asyncio.sleep(random.uniform(0, delay))
+        return await call_next(request)
+
+    @app.get("/", include_in_schema=False)
+    def index() -> FileResponse:
+        return FileResponse(WEB / "index.html")
 
     def role(authorization: Annotated[str | None, Header()] = None) -> str:
         token = (authorization or "").removeprefix("Bearer ")
@@ -98,6 +131,11 @@ def create_app(group: Group) -> FastAPI:
         return GradeOut(
             course=g.course, score=g.score, ects=g.ects, graded_on=g.graded_on
         )
+
+    @app.get("/api/me", responses=ERRORS)
+    def me(current: Annotated[str, Depends(role)]) -> Me:
+        name, _, student_id = current.partition(":")
+        return Me(role=name, student_id=int(student_id) if student_id else None)
 
     @app.get("/api/students", responses=ERRORS)
     def list_students(

@@ -1,6 +1,6 @@
 [project]
 name = "student-portal"
-version = "0.7.0"
+version = "0.8.0"
 description = "Система управління студентами - навчальний застосунок курсу «Тестування та супровід ПЗ»"
 readme = "README.md"
 authors = [
@@ -34,6 +34,7 @@ dev = [
     "pytest>=9.0",
     "pytest-cov>=7.1.0",
     "pytest-mock>=3.17.0",
+    "pytest-playwright>=0.10",
     "ruff>=0.17.1",
     "schemathesis>=4.32.5",
     "testcontainers>=4.15",
@@ -54,7 +55,8 @@ max-complexity = 10
 "tests/**" = ["S101"]
 # Базова лінія: mccabe додає до create_app складність вкладених обробників маршрутів
 # FastAPI (кожен обробник окремо простий); код застосунку викладача не змінюємо.
-"src/student_portal/api.py" = ["C901"]
+# S311 - хибне спрацювання: random імітує затримку мережі (PORTAL_MAX_DELAY), не криптографію.
+"src/student_portal/api.py" = ["C901", "S311"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
