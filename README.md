@@ -18,3 +18,4 @@ Python 3 і pytest для модульних та інтеграційних т�
 | 2 | Статичне тестування коду і контрольні точки якості | [docs/lab02](docs/lab02/), [запит на злиття #1](https://github.com/lerabo/testing-course-bondarchuk/pull/1) |
 | 3 | Проєктування тестових випадків | [docs/lab03](docs/lab03/) |
 | 4 | Тест-план, дослідницьке тестування, звіти про дефекти | [docs/lab04](docs/lab04/), [issues з міткою bug](https://github.com/lerabo/testing-course-bondarchuk/issues?q=label%3Abug) |
+| 5 | Модульне тестування, TDD і тестові дублери | [docs/lab05](docs/lab05/), [запуски CI на main](https://github.com/lerabo/testing-course-bondarchuk/actions/workflows/static-checks.yml?query=branch%3Amain) |
