@@ -27,3 +27,9 @@ def test_holiday_moves_to_next_working_day():
     christmas = date(2026, 12, 25)  # п'ятниця; далі вихідні
     result = retake_date(date(2026, 12, 18), SEMESTER_END, holidays={christmas})
     assert result == date(2026, 12, 28)
+
+
+def test_several_holidays_in_a_row_are_skipped():
+    holidays = {date(2026, 12, 29), date(2026, 12, 30)}  # вівторок і середа
+    result = retake_date(date(2026, 12, 22), SEMESTER_END, holidays=holidays)
+    assert result == date(2026, 12, 31)
