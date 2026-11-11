@@ -56,3 +56,12 @@ omit = ["*/student_portal/cli.py", "*/student_portal/dean.py"]
 show_missing = true
 skip_covered = true
 fail_under = 85
+
+[tool.mutmut]
+source_paths = ["src/"]
+only_mutate = [
+    "src/student_portal/corrections.py",
+    "src/student_portal/scholarship.py",
+    "src/student_portal/retake.py",
+]
+pytest_add_cli_args_test_selection = ["tests/lab05", "tests/lab06/test_mutants.py"]
