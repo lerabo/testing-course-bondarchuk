@@ -1,0 +1,48 @@
+name: Звіт про дефект
+description: Відмова або невідповідність специфікації
+title: "[Дефект] "
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Версія і середовище
+      placeholder: "app-lab04 (0.4.0), коміт …, Linux, Python 3.13"
+    validations:
+      required: true
+  - type: input
+    id: context
+    attributes:
+      label: Контекст
+      description: Тестові випадки ЛР 3 або хартія сесії, в якій знайдено дефект
+      placeholder: "TB-ST-07 або ХС-01"
+  - type: textarea
+    id: steps
+    attributes:
+      label: Кроки відтворення
+      description: Мінімальні кроки з конкретними даними
+      value: |
+        1.
+        2.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Очікуваний результат
+      description: З посиланням на вимогу (Р-xx)
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Фактичний результат
+      description: Дослівно - повідомлення, вивід, стан даних
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Докази і примітки
+      description: Файли з test-data, знімки екрана; обґрунтування серйозності й пріоритету
