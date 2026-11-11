@@ -13,7 +13,11 @@ def grade_for(location: str, **overrides):
 @pytest.mark.parametrize(
     ("score", "letter"),
     [
-        (0, "Fx"),
+        pytest.param(
+            0,
+            "Fx",
+            marks=pytest.mark.xfail(strict=True, reason="відомий дефект #46"),
+        ),
         (1, "Fx"),
         (59, "Fx"),
         (60, "E"),

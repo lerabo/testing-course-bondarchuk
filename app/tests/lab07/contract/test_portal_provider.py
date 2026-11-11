@@ -2,11 +2,13 @@
 
 from pathlib import Path
 
+import pytest
 from pact import Verifier
 
 PACTS = Path(__file__).parent / "pacts"
 
 
+@pytest.mark.xfail(strict=True, reason="суперечність Р-23 і Р-24 #50 (funding)")
 def test_student_portal_honours_dean_contract(base_url):
     verifier = (
         Verifier("student-portal", host="127.0.0.1")

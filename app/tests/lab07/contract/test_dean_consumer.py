@@ -57,6 +57,7 @@ def test_card_of_student_with_grades(pact):
     )
 
 
+@pytest.mark.xfail(strict=True, reason="відомий дефект #49 (споживач)")
 def test_card_of_student_without_grades(pact):
     (
         pact.upon_receiving("запит картки студента без оцінок")

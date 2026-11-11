@@ -56,7 +56,7 @@ EXPECTED = {
     },
 }
 
-KNOWN = {}  # (token, request) -> issue; заповнюється за результатами запуску
+KNOWN = {(TEACHER, "update-new"): "#44", (STUDENT_1, "grades-new"): "#45"}
 
 MATRIX = [
     pytest.param(
@@ -99,6 +99,8 @@ def test_access_control(base_url, admin, new_id, token, request_name, expected):
 
 # ------------------------------------------- власні дані студента і порядок перевірок
 
+BOLA = pytest.mark.xfail(strict=True, reason="відомий дефект #45")
+
 OWN = [
     pytest.param(STUDENT_1, "GET", "/api/students/1", 200, id="student-1-own-card"),
     pytest.param(
@@ -106,7 +108,12 @@ OWN = [
     ),
     pytest.param(STUDENT_1, "GET", "/api/students/2", 403, id="student-1-card-of-2"),
     pytest.param(
-        STUDENT_1, "GET", "/api/students/2/grades", 403, id="student-1-grades-of-2"
+        STUDENT_1,
+        "GET",
+        "/api/students/2/grades",
+        403,
+        id="student-1-grades-of-2",
+        marks=BOLA,
     ),
     pytest.param(
         STUDENT_1, "GET", "/api/students/99999", 403, id="student-1-missing-403"
@@ -117,6 +124,7 @@ OWN = [
         "/api/students/99999/grades",
         403,
         id="student-1-missing-grades-403",
+        marks=BOLA,
     ),
     pytest.param(STUDENT_1, "PUT", "/api/students/1", 403, id="student-1-updates-self"),
     pytest.param(
