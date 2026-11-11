@@ -8,6 +8,8 @@ SATURDAY = 5
 
 def retake_date(exam_date: date, semester_end: date, holidays=()) -> date:
     candidate = exam_date + timedelta(days=MIN_DAYS_AFTER_EXAM)
+    if candidate in holidays:
+        candidate += timedelta(days=1)
     while candidate.weekday() >= SATURDAY:
         candidate += timedelta(days=1)
     return candidate
