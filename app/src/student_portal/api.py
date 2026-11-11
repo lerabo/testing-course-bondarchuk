@@ -1,0 +1,193 @@
+"""REST API системи управління студентами (вимога Р-23)."""
+
+import os
+from contextlib import suppress
+from datetime import date
+from pathlib import Path
+from typing import Annotated
+
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Response, status
+from pydantic import BaseModel, EmailStr, Field
+
+from student_portal.exceptions import PortalError, StudentNotFoundError
+from student_portal.grades import Grade
+from student_portal.group import Group
+from student_portal.people import Student
+from student_portal.storage import load_group
+
+TOKENS = {
+    "admin-token": "admin",
+    "teacher-token": "teacher",
+    "student-1-token": "student:1",
+    "student-2-token": "student:2",
+}
+
+ERRORS = {
+    401: {"description": "Немає токена або токен невідомий"},
+    403: {"description": "Ролі бракує прав"},
+}
+NOT_FOUND = {404: {"description": "Студента не знайдено"}}
+CONFLICT = {409: {"description": "Конфлікт з наявними даними"}}
+
+
+class StudentIn(BaseModel):
+    first_name: str = Field(min_length=1, max_length=50)
+    last_name: str = Field(min_length=1, max_length=50)
+    email: EmailStr
+
+
+class StudentOut(StudentIn):
+    id: int
+    group: str
+    average: float | None
+
+
+class GradeIn(BaseModel):
+    student_id: int
+    course: str = Field(min_length=1, max_length=100)
+    score: int = Field(ge=1, le=100)
+
+
+class GradeOut(BaseModel):
+    course: str
+    score: int
+    ects: str
+    graded_on: date
+
+
+def create_app(group: Group) -> FastAPI:
+    app = FastAPI(title="Система управління студентами", version="0.7.0")
+
+    def role(authorization: Annotated[str | None, Header()] = None) -> str:
+        token = (authorization or "").removeprefix("Bearer ")
+        if token not in TOKENS:
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "потрібна автентифікація")
+        return TOKENS[token]
+
+    def require(*allowed: str):
+        def check(current: Annotated[str, Depends(role)]) -> str:
+            if current not in allowed:
+                raise HTTPException(status.HTTP_403_FORBIDDEN, "недостатньо прав")
+            return current
+
+        return check
+
+    def find(student_id: int) -> Student:
+        try:
+            return group.get(student_id)
+        except StudentNotFoundError:
+            raise HTTPException(
+                status.HTTP_404_NOT_FOUND, "студента не знайдено"
+            ) from None
+
+    def ensure_unique(email: str) -> None:
+        if any(s.email and s.email.casefold() == email.casefold() for s in group):
+            raise HTTPException(status.HTTP_409_CONFLICT, "email уже використовується")
+
+    def out(s: Student) -> StudentOut:
+        return StudentOut(
+            id=s.id,
+            first_name=s.first_name,
+            last_name=s.last_name,
+            email=s.email or "",
+            group=group.name,
+            average=s.average(),
+        )
+
+    def grade_out(g: Grade) -> GradeOut:
+        return GradeOut(
+            course=g.course, score=g.score, ects=g.ects, graded_on=g.graded_on
+        )
+
+    @app.get("/api/students", responses=ERRORS)
+    def list_students(
+        _: Annotated[str, Depends(require("admin", "teacher"))],
+        group_name: Annotated[str | None, Query(alias="group")] = None,
+    ) -> list[StudentOut]:
+        if group_name is not None and group_name != group.name:
+            return []
+        return [out(s) for s in group]
+
+    @app.post("/api/students", status_code=201, responses=ERRORS | CONFLICT)
+    def create_student(
+        data: StudentIn,
+        response: Response,
+        _: Annotated[str, Depends(require("admin"))],
+    ) -> StudentOut:
+        ensure_unique(data.email)
+        student = Student(
+            group.next_id(), data.first_name, data.last_name, email=data.email
+        )
+        group.add(student)
+        response.headers["Location"] = f"/api/students/{student.id}"
+        return out(student)
+
+    @app.get("/api/students/{student_id}", responses=ERRORS | NOT_FOUND)
+    def get_student(
+        student_id: int, current: Annotated[str, Depends(role)]
+    ) -> StudentOut:
+        if current not in ("admin", "teacher", f"student:{student_id}"):
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "недостатньо прав")
+        return out(find(student_id))
+
+    @app.put("/api/students/{student_id}", responses=ERRORS | NOT_FOUND | CONFLICT)
+    def update_student(
+        student_id: int,
+        data: StudentIn,
+        _: Annotated[str, Depends(require("admin", "teacher"))],
+    ) -> StudentOut:
+        student = find(student_id)
+        student.first_name = data.first_name
+        student.last_name = data.last_name
+        student.email = data.email
+        return out(student)
+
+    @app.delete(
+        "/api/students/{student_id}", status_code=204, responses=ERRORS | NOT_FOUND
+    )
+    def delete_student(
+        student_id: int, _: Annotated[str, Depends(require("admin"))]
+    ) -> None:
+        with suppress(StudentNotFoundError):
+            group.remove(student_id)
+
+    @app.post("/api/grades", status_code=201, responses=ERRORS | NOT_FOUND | CONFLICT)
+    def add_grade(
+        data: GradeIn, _: Annotated[str, Depends(require("teacher"))]
+    ) -> GradeOut:
+        student = find(data.student_id)
+        try:
+            grade = Grade(data.course, data.score)
+            student.add_grade(grade)
+        except PortalError as error:
+            raise HTTPException(status.HTTP_409_CONFLICT, str(error)) from None
+        return grade_out(grade)
+
+    @app.get("/api/students/{student_id}/grades", responses=ERRORS | NOT_FOUND)
+    def list_grades(
+        student_id: int, current: Annotated[str, Depends(role)]
+    ) -> list[GradeOut]:
+        if current not in ("admin", "teacher") and not current.startswith("student:"):
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "недостатньо прав")
+        grades = sorted(find(student_id).grades, key=lambda g: g.graded_on)
+        return [grade_out(g) for g in grades]
+
+    return app
+
+
+def demo_app() -> FastAPI:
+    """Застосунок з даними з файлу PORTAL_DATA (за замовчуванням data/group.json)."""
+    return create_app(
+        load_group(Path(os.environ.get("PORTAL_DATA", "data/group.json")))
+    )
+
+
+def main() -> None:
+    import uvicorn
+
+    uvicorn.run(
+        "student_portal.api:demo_app",
+        factory=True,
+        host="127.0.0.1",
+        port=int(os.environ.get("PORTAL_PORT", "8000")),
+    )

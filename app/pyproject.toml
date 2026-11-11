@@ -1,6 +1,6 @@
 [project]
 name = "student-portal"
-version = "0.6.0"
+version = "0.7.0"
 description = "Система управління студентами - навчальний застосунок курсу «Тестування та супровід ПЗ»"
 readme = "README.md"
 authors = [
@@ -8,12 +8,17 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "fastapi>=0.162.0",
+    "httpx>=0.28.1",
     "psycopg[binary]>=3.3.6",
+    "pydantic[email]>=2.14.1",
+    "uvicorn>=0.54.0",
 ]
 
 [project.scripts]
 student-portal = "student_portal:main"
 student-portal-dean = "student_portal.dean:main"
+student-portal-api = "student_portal.api:main"
 
 [build-system]
 requires = ["uv_build>=0.11.21,<0.12.0"]
@@ -21,12 +26,16 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "httpx2>=2.16.0",
     "hypothesis>=6.170",
+    "jsonschema>=4.26.0",
     "mutmut>=3.8",
+    "pact-python>=4",
     "pytest>=9.0",
     "pytest-cov>=7.1.0",
     "pytest-mock>=3.17.0",
     "ruff>=0.17.1",
+    "schemathesis>=4.32.5",
     "testcontainers>=4.15",
 ]
 
@@ -43,6 +52,9 @@ max-complexity = 10
 [tool.ruff.lint.per-file-ignores]
 # pytest побудований на assert: у тестах S101 - хибне спрацювання
 "tests/**" = ["S101"]
+# Базова лінія: mccabe додає до create_app складність вкладених обробників маршрутів
+# FastAPI (кожен обробник окремо простий); код застосунку викладача не змінюємо.
+"src/student_portal/api.py" = ["C901"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -12,6 +12,7 @@
 cd app
 uv run student-portal      # консольний застосунок
 uv run student-portal-dean # консоль деканату: імпорт студентів, статуси, стипендії, нагадування
+uv run student-portal-api  # REST API на http://127.0.0.1:8000 (документація: /docs)
 uv run pytest              # тести
 uv run ruff check .        # лінтер
 ```
@@ -33,6 +34,8 @@ app/
 │   ├── importer.py            # імпорт студентів із CSV (вимога Р-19)
 │   ├── reminders.py           # нагадування про заборгованість (вимога Р-20)
 │   ├── repository.py          # зберігання в PostgreSQL (вимога Р-22)
+│   ├── api.py                 # REST API (вимога Р-23)
+│   ├── dean_client.py         # клієнт сервісу деканату (вимога Р-24)
 │   ├── exceptions.py          # власні винятки
 │   ├── cli.py                 # консольне меню
 │   └── dean.py                # консоль деканату
@@ -48,3 +51,23 @@ app/
 Модуль `repository.py` (вимога Р-22) зберігає студентів і оцінки в PostgreSQL; ним користуватиметься вебверсія застосунку. Консольні застосунки поки працюють з `data/group.json`.
 
 Тести репозиторію (`tests/test_repository.py`) запускають PostgreSQL 18 в одноразовому контейнері за допомогою Testcontainers, тому потрібен запущений Docker (Docker Desktop, Docker Engine або Podman). Без Docker ці тести пропускаються з поясненням `Docker недоступний`. Перший запуск завантажує образ `postgres:18-alpine` і триває довше.
+
+## REST API
+
+`uv run student-portal-api` запускає REST API (вимога Р-23) на <http://127.0.0.1:8000>; порт змінює змінна `PORTAL_PORT`, файл даних - `PORTAL_DATA` (за замовчуванням `data/group.json`). Інтерактивна документація - <http://127.0.0.1:8000/docs>, схема OpenAPI - `/openapi.json`.
+
+Дані зберігаються в пам’яті процесу: зміни через API не записуються у файл, після перезапуску сервер знову читає `data/group.json`.
+
+Автентифікація - заголовок `Authorization: Bearer <токен>`:
+
+| Токен | Роль |
+| --- | --- |
+| `admin-token` | адміністратор (деканат) |
+| `teacher-token` | викладач |
+| `student-1-token`, `student-2-token` | студенти з `id` 1 і 2 |
+
+```bash
+curl -H "Authorization: Bearer teacher-token" http://127.0.0.1:8000/api/students
+```
+
+Модуль `dean_client.py` - клієнт сервісу деканату (вимога Р-24), який читає з API картку студента.
