@@ -1,0 +1,54 @@
+name: nightly
+
+# Задовгі для кожного запиту на злиття перевірки: мутаційний аналіз (ЛР 6) і
+# E2E-тести на повільній мережі (ЛР 8). За розкладом GitHub запускає їх лише з main.
+on:
+  schedule:
+    - cron: "30 1 * * *" # 01:30 UTC - 03:30 за київським часом узимку
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: app
+
+jobs:
+  mutation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - run: uv sync --locked
+      - run: uv run mutmut run
+      - name: Мутаційний показник
+        if: ${{ !cancelled() }}
+        run: |
+          uv run mutmut export-cicd-stats
+          jq -r '"Мутантів: \(.total), убито: \(.killed), живих: \(.survived), показник: \(100 * .killed / .total | floor) %"' \
+            mutants/mutmut-cicd-stats.json >> "$GITHUB_STEP_SUMMARY"
+          { echo '```'; uv run mutmut results; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+  e2e-slow-network:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PORTAL_MAX_DELAY: "0.3"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - run: uv sync --locked
+      - run: uv run playwright install --with-deps chromium || uv run playwright install chromium
+      - run: >
+          uv run pytest --strict-markers -m e2e -rxX --tracing retain-on-failure
+          --junitxml=reports/junit-e2e-slow.xml
+      - name: Підсумок тестів
+        if: ${{ !cancelled() }}
+        run: uv run python ../scripts/junit_summary.py reports/junit-*.xml >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: playwright-traces-slow
+          path: app/test-results/
