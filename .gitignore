@@ -2,3 +2,6 @@ __pycache__/
 .coverage
 htmlcov/
 .venv/
+
+# Звіти конвеєра CI (ЛР 9): JUnit XML, дані і HTML покриття
+app/reports/

@@ -8,6 +8,8 @@ from playwright.sync_api import expect
 from .pages.login_page import LoginPage
 from .pages.students_page import StudentsPage
 
+pytestmark = pytest.mark.e2e
+
 
 def add(page, base_url, email):
     LoginPage(page, base_url).open().login("admin-token")

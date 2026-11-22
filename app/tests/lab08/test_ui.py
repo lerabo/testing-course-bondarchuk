@@ -10,6 +10,8 @@ from .pages.login_page import LoginPage
 from .pages.student_card import StudentCard
 from .pages.students_page import StudentsPage
 
+pytestmark = pytest.mark.e2e
+
 
 def known_defect(issue: str):
     return pytest.mark.xfail(strict=True, reason=f"відомий дефект {issue}")
