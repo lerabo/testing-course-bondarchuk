@@ -1,0 +1,185 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  merge_group:
+  workflow_dispatch:
+
+# Токен робочого процесу лише читає репозиторій
+permissions:
+  contents: read
+
+# Новий коміт у запиті на злиття скасовує застарілий запуск; на main - ні
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    working-directory: app
+
+jobs:
+  # Найшвидший зворотний зв'язок: стиль, форматування і самі робочі процеси
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - run: uv sync --locked
+      - run: uv run ruff check --output-format=github .
+      - run: uv run ruff format --check .
+      - name: actionlint
+        working-directory: .
+        run: uvx --from actionlint-py actionlint
+
+  # SAST не залежить від лінтера: стартує одразу
+  sast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - working-directory: .
+        run: uvx semgrep scan --config p/python --config rules/ --error --metrics=off app/src
+
+  # Модульні, властивостей, API і контрактні тести - секунди, у процесі pytest
+  unit:
+    needs: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.12", "3.14"]
+    env:
+      COVERAGE_FILE: reports/.coverage.unit-${{ matrix.python }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          python-version: ${{ matrix.python }}
+      - run: uv sync --locked
+      - run: >
+          uv run pytest --strict-markers -m "not integration and not e2e" -rxX
+          --junitxml=reports/junit-unit-${{ matrix.python }}.xml
+          --cov --cov-fail-under=0
+      - name: Підсумок тестів
+        if: ${{ !cancelled() }}
+        run: uv run python ../scripts/junit_summary.py reports/junit-*.xml >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: unit-${{ matrix.python }}
+          path: app/reports/
+          include-hidden-files: true
+
+  # PostgreSQL у контейнері (ЛР 6): у CI відсутність Docker - помилка, а не пропуск
+  integration:
+    needs: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      COVERAGE_FILE: reports/.coverage.integration
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - run: uv sync --locked
+      - run: >
+          uv run pytest --strict-markers -m integration -rxXs
+          --junitxml=reports/junit-integration.xml
+          --cov --cov-fail-under=0
+      - name: Підсумок тестів
+        if: ${{ !cancelled() }}
+        run: uv run python ../scripts/junit_summary.py reports/junit-*.xml >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: integration
+          path: app/reports/
+          include-hidden-files: true
+
+  # Вебінтерфейс у браузері (ЛР 8); трасування - лише для тестів, що впали
+  e2e:
+    needs: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      COVERAGE_FILE: reports/.coverage.e2e
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - run: uv sync --locked
+      # Системні пакети браузера; якщо дзеркало apt недоступне - лише браузер
+      - run: uv run playwright install --with-deps chromium || uv run playwright install chromium
+      - run: >
+          uv run pytest --strict-markers -m e2e -rxX --tracing retain-on-failure
+          --junitxml=reports/junit-e2e.xml
+          --cov --cov-fail-under=0
+      - name: Підсумок тестів
+        if: ${{ !cancelled() }}
+        run: uv run python ../scripts/junit_summary.py reports/junit-*.xml >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: e2e
+          path: app/reports/
+          include-hidden-files: true
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: failure()
+        with:
+          name: playwright-traces
+          path: app/test-results/
+
+  # Поріг покриття - лише на об'єднаних даних усіх рівнів; для запитів - новий код
+  coverage:
+    needs: [unit, integration, e2e]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - run: uv sync --locked
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: app/reports/
+          merge-multiple: true
+      - run: uv run coverage combine reports/
+      - run: uv run coverage xml -o reports/coverage.xml
+      - run: uv run coverage html -d reports/htmlcov
+      - name: Загальне покриття (поріг з pyproject.toml)
+        run: |
+          uv run coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
+          uv run coverage report
+      - name: Поріг для retake.py (ЛР 5)
+        run: uv run coverage report --include="*/retake.py" --fail-under=100
+      - name: Покриття нового коду
+        if: github.event_name == 'pull_request'
+        run: >
+          uvx diff-cover reports/coverage.xml
+          --compare-branch=origin/${{ github.base_ref }}
+          --fail-under=90
+          --format markdown:reports/diff-cover.md
+      - if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        run: cat reports/diff-cover.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: coverage-html
+          path: app/reports/htmlcov/
+
+  # Єдина обов'язкова перевірка в правилах гілки main
+  ci-ok:
+    if: always()
+    needs: [lint, sast, unit, integration, e2e, coverage]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Усі обов’язкові завдання пройшли
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        working-directory: .
+        run: exit 1
