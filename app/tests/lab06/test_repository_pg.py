@@ -9,6 +9,8 @@ from student_portal.grades import Grade
 from student_portal.people import Funding, Student
 from student_portal.status import Status
 
+pytestmark = pytest.mark.integration
+
 
 def known_defect(issue: str):
     return pytest.mark.xfail(strict=True, reason=f"відомий дефект {issue}")
