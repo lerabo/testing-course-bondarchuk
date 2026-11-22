@@ -2,12 +2,15 @@
 
 from datetime import date
 
+import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from student_portal.grades import Grade
 from student_portal.people import Funding, Student
 from student_portal.status import Status
+
+pytestmark = pytest.mark.integration
 
 # PostgreSQL TEXT не зберігає байт NUL, а стовпець id має тип INTEGER: ці
 # обмеження бази даних специфікація Р-22 не описує, тому стратегія їх враховує

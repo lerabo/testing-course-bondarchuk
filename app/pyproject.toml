@@ -60,6 +60,11 @@ max-complexity = 10
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Рівні тестів (ЛР 9): без позначки - модульні, API і контрактні, у процесі pytest
+markers = [
+    "integration: потребує Docker (Testcontainers)",
+    "e2e: потребує браузера (Playwright)",
+]
 
 [tool.coverage.run]
 branch = true
