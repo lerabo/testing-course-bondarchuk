@@ -126,7 +126,6 @@ def test_search_by_part_of_last_name(as_admin):
     expect(as_admin.row_for("Коваль Олена")).to_be_visible()
 
 
-@known_defect("#53")
 def test_search_ignores_case(as_admin):
     as_admin.search_for("коваль")
     expect(as_admin.rows).to_have_count(1)
