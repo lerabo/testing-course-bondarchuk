@@ -56,6 +56,13 @@ class Group:
         averages = [avg for s in self if (avg := s.average()) is not None]
         return fmean(averages) if averages else None
 
+    def best_student(self) -> Student | None:
+        """Студент з найвищим середнім балом або None, якщо оцінок немає."""
+        graded = [s for s in self if s.average() is not None]
+        if not graded:
+            return None
+        return max(graded, key=lambda s: s.average())
+
     def courses(self) -> set[str]:
         return {grade.course for s in self for grade in s.grades}
 
