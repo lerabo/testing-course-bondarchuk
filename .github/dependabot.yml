@@ -1,0 +1,16 @@
+version: 2
+updates:
+  # Дії закріплено за SHA: Dependabot оновлює і SHA, і коментар з версією
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  # Діапазони >= у pyproject.toml уже вміщують нові версії: оновлюється лише uv.lock
+  - package-ecosystem: uv
+    directory: /app
+    schedule:
+      interval: weekly
+    versioning-strategy: lockfile-only
+    groups:
+      dev-tools:
+        dependency-type: development
