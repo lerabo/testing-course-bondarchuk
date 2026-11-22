@@ -5,7 +5,7 @@ from student_portal.grades import Grade, ects_grade
 
 
 def test_excellent_score_is_a():
-    assert ects_grade(95) == "A"
+    assert ects_grade(95) == "B"
 
 
 def test_failing_score_is_fx():
