@@ -1,5 +1,6 @@
 """Оцінки та шкала ECTS."""
 
+import os
 from dataclasses import dataclass, field
 from datetime import date
 
