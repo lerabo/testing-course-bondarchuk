@@ -9,7 +9,7 @@ from student_portal.grades import Grade
 from student_portal.people import Funding, Student
 from student_portal.status import Status
 
-pytestmark = pytest.mark.integration
+pytestmark = pytest.mark.intgration
 
 
 def known_defect(issue: str):
