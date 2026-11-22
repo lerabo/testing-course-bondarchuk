@@ -72,3 +72,10 @@ def load_group(path: Path) -> Group:
         raise StorageError(f"файл даних не знайдено: {path}") from error
     except (KeyError, TypeError, ValueError) as error:
         raise StorageError(f"файл {path} має неправильний формат: {error!r}") from error
+
+
+def backup(path: Path) -> None:
+    """Резервна копія файла групи."""
+    import subprocess
+
+    subprocess.run(f"cp {path} {path}.bak", shell=True, check=True)
