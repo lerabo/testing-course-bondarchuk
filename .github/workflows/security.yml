@@ -1,0 +1,65 @@
+# Нічні перевірки безпеки (ЛР 10): SCA, SBOM і пасивне сканування ZAP.
+# Не входять до ci.yml: нова CVE з'являється без зміни коду, а червоний SCA
+# блокував би кожен запит на злиття, поки залежність не оновлено.
+name: security
+
+on:
+  schedule:
+    - cron: "0 2 * * *" # 02:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: app
+
+jobs:
+  sca:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - run: uv export --no-dev --no-hashes --no-emit-project -o requirements.txt
+      - name: SBOM
+        run: uv export --format cyclonedx1.5 --no-dev -o sbom.cdx.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sbom
+          path: app/sbom.cdx.json
+      - name: pip-audit
+        run: |
+          uvx pip-audit -r requirements.txt --no-deps --disable-pip -f markdown \
+            >> "$GITHUB_STEP_SUMMARY"
+
+  dast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - run: uv sync --locked
+      - name: Запуск застосунку
+        run: |
+          nohup uv run student-portal-api > server.log 2>&1 &
+          for _ in $(seq 30); do
+            curl -sf http://127.0.0.1:8000/ > /dev/null && exit 0
+            sleep 1
+          done
+          exit 1
+      - name: ZAP baseline
+        working-directory: .
+        run: |
+          mkdir -p zap && chmod 777 zap && cp .zap/rules.tsv zap/
+          docker run --rm --network host -v "$PWD/zap":/zap/wrk:rw \
+            ghcr.io/zaproxy/zaproxy:2.17.0 \
+            zap-baseline.py -t http://127.0.0.1:8000/ -c rules.tsv -r baseline.html
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: ${{ !cancelled() }}
+        with:
+          name: zap-baseline
+          path: |
+            zap/baseline.html
+            app/server.log
