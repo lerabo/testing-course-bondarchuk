@@ -10,7 +10,7 @@ CREDITS = {"Python": 5, "Бази даних": 4, "Алгоритми": 5, "Ве
 W = 50
 
 
-def transcript(student, group_name=""):  # noqa: C901 - технічний борг, див. Р-28
+def title(student, group_name=""):
     s = ""
     s = s + "АКАДЕМІЧНА ДОВІДКА\n"
     s = s + "Студент: " + student.last_name + " " + student.first_name
@@ -22,6 +22,11 @@ def transcript(student, group_name=""):  # noqa: C901 - технічний бо�
     if student.funding == Funding.BUDGET:
         f = "державне замовлення"
     s = s + "Форма навчання: " + f + "\n"
+    return s
+
+
+def transcript(student, group_name=""):  # noqa: C901 - технічний борг, див. Р-28
+    s = title(student, group_name)
     if len(student.grades) == 0:
         s = s + "Оцінок немає\n"
         return s
