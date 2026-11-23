@@ -44,6 +44,11 @@ def title(student, group_name=""):
     return s
 
 
+def row(course, credits, score, letter, word):
+    """Рядок таблиці: назва 22 ліворуч, кредити 8, бали 6, літера 6 праворуч."""
+    return f"{course:<22}{credits:>8}{score:>6}{letter:>6}  {word}\n"
+
+
 def final_grades(student):
     """Пари (дисципліна, зарахована оцінка) у порядку назв дисциплін."""
     courses = []
@@ -68,8 +73,7 @@ def transcript(student, group_name=""):  # noqa: C901 - технічний бо�
         s = s + "Оцінок немає\n"
         return s
     s = s + "-" * W + "\n"
-    s = s + "Дисципліна".ljust(22) + "Кредити".rjust(8) + "Бали".rjust(6)
-    s = s + "ECTS".rjust(6) + "  Оцінка\n"
+    s = s + row("Дисципліна", "Кредити", "Бали", "ECTS", "Оцінка")
     total = 0
     cr = 0
     debts = []
@@ -82,8 +86,7 @@ def transcript(student, group_name=""):  # noqa: C901 - технічний бо�
             debts.append(c)
         total = total + p * k
         cr = cr + k
-        s = s + c.ljust(22) + str(k).rjust(8) + str(p).rjust(6) + e.rjust(6)
-        s = s + "  " + n + "\n"
+        s = s + row(c, k, p, e, n)
     s = s + "-" * W + "\n"
     s = s + "Усього кредитів: " + str(cr) + "\n"
     avg = int(total / cr * 10 + 0.5) / 10
