@@ -1,7 +1,7 @@
 """Академічна довідка студента (вимога Р-28).
 
-Перенесено з системи деканату попередньої версії (2019); ЛР 11 - рефакторинг
-під захистом характеризаційних тестів, поведінку не змінено.
+Перенесено з системи деканату попередньої версії (2019). ЛР 11: рефакторинг під
+захистом характеризаційних тестів, потім виправлення за Р-28 (#92, #93).
 """
 
 from student_portal.grades import Grade
@@ -12,27 +12,16 @@ CREDITS = {"Python": 5, "Бази даних": 4, "Алгоритми": 5, "Ве
 DEFAULT_CREDITS = 3
 RULE = "-" * 50
 
-type Scale = list[tuple[int, str]]
-
-# шкала старої системи: нижня межа балу і літера; перша відповідна межа
-ECTS_SCALE: Scale = [
-    (90, "A"),
-    (82, "B"),
-    (75, "C"),
-    (67, "D"),
-    (60, "E"),
-    (35, "FX"),
-    (0, "F"),
-]
-
 FAIL = "незадовільно"
-# національна шкала старої системи - за балом, а не за літерою ECTS
-NATIONAL_SCALE: Scale = [(90, "відмінно"), (74, "добре"), (60, "задовільно"), (0, FAIL)]
-
-
-def by_threshold(scale: Scale, score: int) -> str:
-    # нижче за найменшу межу - останнє значення шкали, як else у старому коді
-    return next((value for lower, value in scale if score >= lower), scale[-1][1])
+# національна шкала - за літерою ECTS (Р-28): B і C - «добре», D і E - «задовільно»
+NATIONAL = {
+    "A": "відмінно",
+    "B": "добре",
+    "C": "добре",
+    "D": "задовільно",
+    "E": "задовільно",
+    "Fx": FAIL,
+}
 
 
 def title(student: Student, group_name: str = "") -> list[str]:
@@ -88,12 +77,12 @@ def transcript(student: Student, group_name: str = "") -> str:
     debts = []
     for course, grade in final_grades(student):
         credits = CREDITS.get(course, DEFAULT_CREDITS)
-        word = by_threshold(NATIONAL_SCALE, grade.score)
+        letter = grade.ects  # шкала Р-05: Fx для 0–59 (#92)
+        word = NATIONAL[letter]  # за літерою, а не за балом (#93)
         if word == FAIL:
             debts.append(course)
         weighted_total += grade.score * credits
         total_credits += credits
-        letter = by_threshold(ECTS_SCALE, grade.score)
         lines.append(row(course, credits, grade.score, letter, word))
     lines.append(RULE)
     lines += summary(total_credits, weighted_total, debts)
