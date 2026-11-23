@@ -67,6 +67,23 @@ def final_grades(student):
     return result
 
 
+def half_up(value):
+    """Округлення до десятих «половина вгору»; round() округлює 90,25 до 90,2."""
+    return int(value * 10 + 0.5) / 10
+
+
+def summary(credits, weighted_total, debts):
+    s = "Усього кредитів: " + str(credits) + "\n"
+    avg = half_up(weighted_total / credits)
+    s = s + "Середній бал (зважений за кредитами): " + str(avg).replace(".", ",")
+    s = s + "\n"
+    if len(debts) > 0:
+        s = s + "Борги: " + ", ".join(debts) + "\n"
+    else:
+        s = s + "Боргів немає\n"
+    return s
+
+
 def transcript(student, group_name=""):  # noqa: C901 - технічний борг, див. Р-28
     s = title(student, group_name)
     if len(student.grades) == 0:
@@ -88,12 +105,5 @@ def transcript(student, group_name=""):  # noqa: C901 - технічний бо�
         cr = cr + k
         s = s + row(c, k, p, e, n)
     s = s + "-" * W + "\n"
-    s = s + "Усього кредитів: " + str(cr) + "\n"
-    avg = int(total / cr * 10 + 0.5) / 10
-    s = s + "Середній бал (зважений за кредитами): " + str(avg).replace(".", ",")
-    s = s + "\n"
-    if len(debts) > 0:
-        s = s + "Борги: " + ", ".join(debts) + "\n"
-    else:
-        s = s + "Боргів немає\n"
+    s = s + summary(cr, total, debts)
     return s
