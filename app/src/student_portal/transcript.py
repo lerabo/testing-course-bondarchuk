@@ -25,6 +25,24 @@ def title(student, group_name=""):
     return s
 
 
+def final_grades(student):
+    """Пари (дисципліна, зарахована оцінка) у порядку назв дисциплін."""
+    courses = []
+    for g in student.grades:
+        if g.course not in courses:
+            courses.append(g.course)
+    courses.sort()
+    result = []
+    for c in courses:
+        # зараховується остання оцінка з дисципліни
+        last = None
+        for g in student.grades:
+            if g.course == c and (last is None or g.graded_on >= last.graded_on):
+                last = g
+        result.append((c, last))
+    return result
+
+
 def transcript(student, group_name=""):  # noqa: C901 - технічний борг, див. Р-28
     s = title(student, group_name)
     if len(student.grades) == 0:
@@ -33,20 +51,10 @@ def transcript(student, group_name=""):  # noqa: C901 - технічний бо�
     s = s + "-" * W + "\n"
     s = s + "Дисципліна".ljust(22) + "Кредити".rjust(8) + "Бали".rjust(6)
     s = s + "ECTS".rjust(6) + "  Оцінка\n"
-    courses = []
-    for g in student.grades:
-        if g.course not in courses:
-            courses.append(g.course)
-    courses.sort()
     total = 0
     cr = 0
     debts = []
-    for c in courses:
-        # зараховується остання оцінка з дисципліни
-        last = None
-        for g in student.grades:
-            if g.course == c and (last is None or g.graded_on >= last.graded_on):
-                last = g
+    for c, last in final_grades(student):
         k = CREDITS.get(c, 3)
         p = last.score
         if p >= 90:
