@@ -46,20 +46,12 @@ def row(course, credits, score, letter, word):
 
 def final_grades(student):
     """Пари (дисципліна, зарахована оцінка) у порядку назв дисциплін."""
-    courses = []
+    last = {}
     for g in student.grades:
-        if g.course not in courses:
-            courses.append(g.course)
-    courses.sort()
-    result = []
-    for c in courses:
-        # зараховується остання оцінка з дисципліни
-        last = None
-        for g in student.grades:
-            if g.course == c and (last is None or g.graded_on >= last.graded_on):
-                last = g
-        result.append((c, last))
-    return result
+        # остання за датою; з однаковою датою - додана пізніше (>=)
+        if g.course not in last or g.graded_on >= last[g.course].graded_on:
+            last[g.course] = g
+    return sorted(last.items())
 
 
 def half_up(value):
