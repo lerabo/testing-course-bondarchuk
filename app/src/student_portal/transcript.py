@@ -30,23 +30,18 @@ def by_threshold(scale, score):
 
 
 def title(student, group_name=""):
-    s = ""
-    s = s + "АКАДЕМІЧНА ДОВІДКА\n"
-    s = s + "Студент: " + student.last_name + " " + student.first_name
-    s = s + " (id " + str(student.id) + ")"
-    if group_name != "":
-        s = s + ", група " + group_name
-    s = s + "\n"
-    f = "контракт"
-    if student.funding == Funding.BUDGET:
-        f = "державне замовлення"
-    s = s + "Форма навчання: " + f + "\n"
-    return s
+    group = f", група {group_name}" if group_name != "" else ""
+    f = "державне замовлення" if student.funding == Funding.BUDGET else "контракт"
+    return [
+        "АКАДЕМІЧНА ДОВІДКА",
+        f"Студент: {student.last_name} {student.first_name} (id {student.id}){group}",
+        f"Форма навчання: {f}",
+    ]
 
 
 def row(course, credits, score, letter, word):
     """Рядок таблиці: назва 22 ліворуч, кредити 8, бали 6, літера 6 праворуч."""
-    return f"{course:<22}{credits:>8}{score:>6}{letter:>6}  {word}\n"
+    return f"{course:<22}{credits:>8}{score:>6}{letter:>6}  {word}"
 
 
 def final_grades(student):
@@ -73,24 +68,21 @@ def half_up(value):
 
 
 def summary(credits, weighted_total, debts):
-    s = "Усього кредитів: " + str(credits) + "\n"
-    avg = half_up(weighted_total / credits)
-    s = s + "Середній бал (зважений за кредитами): " + str(avg).replace(".", ",")
-    s = s + "\n"
-    if len(debts) > 0:
-        s = s + "Борги: " + ", ".join(debts) + "\n"
-    else:
-        s = s + "Боргів немає\n"
-    return s
+    avg = str(half_up(weighted_total / credits)).replace(".", ",")
+    return [
+        f"Усього кредитів: {credits}",
+        f"Середній бал (зважений за кредитами): {avg}",
+        f"Борги: {', '.join(debts)}" if debts else "Боргів немає",
+    ]
 
 
 def transcript(student, group_name=""):  # noqa: C901 - технічний борг, див. Р-28
-    s = title(student, group_name)
+    lines = title(student, group_name)
     if len(student.grades) == 0:
-        s = s + "Оцінок немає\n"
-        return s
-    s = s + "-" * W + "\n"
-    s = s + row("Дисципліна", "Кредити", "Бали", "ECTS", "Оцінка")
+        lines.append("Оцінок немає")
+        return "\n".join(lines) + "\n"
+    lines.append("-" * W)
+    lines.append(row("Дисципліна", "Кредити", "Бали", "ECTS", "Оцінка"))
     total = 0
     cr = 0
     debts = []
@@ -103,7 +95,7 @@ def transcript(student, group_name=""):  # noqa: C901 - технічний бо�
             debts.append(c)
         total = total + p * k
         cr = cr + k
-        s = s + row(c, k, p, e, n)
-    s = s + "-" * W + "\n"
-    s = s + summary(cr, total, debts)
-    return s
+        lines.append(row(c, k, p, e, n))
+    lines.append("-" * W)
+    lines.extend(summary(cr, total, debts))
+    return "\n".join(lines) + "\n"
