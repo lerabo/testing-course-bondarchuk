@@ -44,6 +44,8 @@ dev = [
 
 [tool.ruff]
 line-length = 88
+# тести ШІ (ЛР 11) збережено без змін як артефакт оцінювання
+extend-exclude = ["tests/lab11/ai/test_ai_*.py"]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "N", "UP", "B", "SIM"]
