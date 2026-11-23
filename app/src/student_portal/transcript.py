@@ -8,6 +8,21 @@ from student_portal.people import Funding
 # кредити ЄКТС; інші дисципліни - 3 кредити
 CREDITS = {"Python": 5, "Бази даних": 4, "Алгоритми": 5, "Веброзробка": 4}
 W = 50
+# шкала старої системи: нижня межа балу і літера; перша відповідна межа
+ECTS_SCALE = [
+    (90, "A"),
+    (82, "B"),
+    (75, "C"),
+    (67, "D"),
+    (60, "E"),
+    (35, "FX"),
+    (0, "F"),
+]
+
+
+def by_threshold(scale, score):
+    # нижче за найменшу межу - останнє значення шкали, як else у старому коді
+    return next((value for lower, value in scale if score >= lower), scale[-1][1])
 
 
 def title(student, group_name=""):
@@ -57,20 +72,7 @@ def transcript(student, group_name=""):  # noqa: C901 - технічний бо�
     for c, last in final_grades(student):
         k = CREDITS.get(c, 3)
         p = last.score
-        if p >= 90:
-            e = "A"
-        elif p >= 82:
-            e = "B"
-        elif p >= 75:
-            e = "C"
-        elif p >= 67:
-            e = "D"
-        elif p >= 60:
-            e = "E"
-        elif p >= 35:
-            e = "FX"
-        else:
-            e = "F"
+        e = by_threshold(ECTS_SCALE, p)
         if p >= 90:
             n = "відмінно"
         elif p >= 74:
