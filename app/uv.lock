@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.12"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -1833,7 +1833,7 @@ wheels = [
 
 [[package]]
 name = "student-portal"
-version = "0.10.0"
+version = "0.11.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
@@ -1857,6 +1857,7 @@ dev = [
     { name = "pytest-playwright" },
     { name = "ruff" },
     { name = "schemathesis" },
+    { name = "syrupy" },
     { name = "testcontainers" },
 ]
 
@@ -1883,7 +1884,20 @@ dev = [
     { name = "pytest-playwright", specifier = ">=0.10" },
     { name = "ruff", specifier = ">=0.17.1" },
     { name = "schemathesis", specifier = ">=4.32.5" },
+    { name = "syrupy", specifier = ">=7.0.3" },
     { name = "testcontainers", specifier = ">=4.15" },
+]
+
+[[package]]
+name = "syrupy"
+version = "7.0.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/99/01/37beb5207de6b94d65feadb611b8b52c535d5de3f090e6775c0da5324072/syrupy-7.0.3.tar.gz", hash = "sha256:91f8b02111c3094a9a6a7eb80b6807f35a298f9d3c3d3cbf27d4e2c4c3ff8b1e", size = 123374, upload-time = "2026-11-21T16:07:03.001Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/98/e0/83f27009f6c99a6b61d99c2d311cab080f43917bdad5d0bf974edf754b70/syrupy-7.0.3-py3-none-any.whl", hash = "sha256:020b4688b46887accb7365fdef7983e6a157f1e6984d1e00571d3d40cfebce51", size = 69112, upload-time = "2026-11-21T16:07:01.582Z" },
 ]
 
 [[package]]
