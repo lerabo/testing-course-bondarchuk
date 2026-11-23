@@ -19,6 +19,10 @@ ECTS_SCALE = [
     (0, "F"),
 ]
 
+FAIL = "незадовільно"
+# національна шкала старої системи - за балом, а не за літерою ECTS
+NATIONAL_SCALE = [(90, "відмінно"), (74, "добре"), (60, "задовільно"), (0, FAIL)]
+
 
 def by_threshold(scale, score):
     # нижче за найменшу межу - останнє значення шкали, як else у старому коді
@@ -73,14 +77,8 @@ def transcript(student, group_name=""):  # noqa: C901 - технічний бо�
         k = CREDITS.get(c, 3)
         p = last.score
         e = by_threshold(ECTS_SCALE, p)
-        if p >= 90:
-            n = "відмінно"
-        elif p >= 74:
-            n = "добре"
-        elif p >= 60:
-            n = "задовільно"
-        else:
-            n = "незадовільно"
+        n = by_threshold(NATIONAL_SCALE, p)
+        if n == FAIL:
             debts.append(c)
         total = total + p * k
         cr = cr + k
