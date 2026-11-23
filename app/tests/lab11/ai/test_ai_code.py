@@ -19,7 +19,12 @@ import pytest
 
 from student_portal.grades import Grade
 from student_portal.people import Funding, Student
-from student_portal.transcript import CREDITS, W, transcript
+from student_portal.transcript import transcript
+
+# ЗМІНЕНО (ЛР 11): CREDITS і W - внутрішні назви старого модуля, після рефакторингу
+# їх немає; значення взято з Р-28, щоб решта тестів збиралася
+CREDITS = {"Python": 5, "Бази даних": 4, "Алгоритми": 5, "Веброзробка": 4}
+W = 50
 
 
 D1 = date(2025, 1, 15)
