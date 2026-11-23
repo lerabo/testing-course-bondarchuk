@@ -6,7 +6,7 @@ _counter = itertools.count(1)
 
 STUDENT_SCHEMA = {
     "type": "object",
-    "required": ["id", "first_name", "last_name", "email", "group", "average"],
+    "required": ["id", "first_name", "last_name", "email", "group", "average", "rank"],
     "properties": {
         "id": {"type": "integer", "minimum": 1},
         "first_name": {"type": "string", "minLength": 1, "maxLength": 50},
@@ -14,6 +14,7 @@ STUDENT_SCHEMA = {
         "email": {"type": "string", "format": "email"},
         "group": {"type": "string"},
         "average": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+        "rank": {"type": ["integer", "null"], "minimum": 1},  # Р-27
     },
     "additionalProperties": False,
 }
