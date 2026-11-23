@@ -14,17 +14,6 @@ RULE = "-" * 50
 
 type Scale = list[tuple[int, str]]
 
-# шкала старої системи: нижня межа балу і літера; перша відповідна межа
-ECTS_SCALE: Scale = [
-    (90, "A"),
-    (82, "B"),
-    (75, "C"),
-    (67, "D"),
-    (60, "E"),
-    (35, "FX"),
-    (0, "F"),
-]
-
 FAIL = "незадовільно"
 # національна шкала старої системи - за балом, а не за літерою ECTS
 NATIONAL_SCALE: Scale = [(90, "відмінно"), (74, "добре"), (60, "задовільно"), (0, FAIL)]
@@ -93,7 +82,7 @@ def transcript(student: Student, group_name: str = "") -> str:
             debts.append(course)
         weighted_total += grade.score * credits
         total_credits += credits
-        letter = by_threshold(ECTS_SCALE, grade.score)
+        letter = grade.ects  # шкала Р-05: Fx для 0–59 (#92)
         lines.append(row(course, credits, grade.score, letter, word))
     lines.append(RULE)
     lines += summary(total_credits, weighted_total, debts)

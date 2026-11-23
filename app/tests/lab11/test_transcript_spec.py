@@ -196,7 +196,6 @@ def test_credits(course, credits):
 
 # --- Шкала ECTS (Р-05): межі кожного класу --------------------------------------
 
-FX = known_defect("#92")
 ECTS_CASES = [
     (100, "A"),
     (90, "A"),
@@ -208,10 +207,10 @@ ECTS_CASES = [
     (67, "D"),
     (66, "E"),
     (60, "E"),
-    pytest.param(59, "Fx", marks=FX),
-    pytest.param(35, "Fx", marks=FX),
-    pytest.param(34, "Fx", marks=FX),
-    pytest.param(0, "Fx", marks=FX),
+    (59, "Fx"),
+    (35, "Fx"),
+    (34, "Fx"),
+    (0, "Fx"),
 ]
 
 
